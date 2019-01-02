@@ -19,7 +19,22 @@ public class Complex extends org.python.types.Object {
     }
 
     public int hashCode() {
-        return this.hashCode();
+        final int sys_hash_info_width = 64; // TODO: Fix this to be constant in sys
+        final long sys_hash_info_modulus = 2305843009213693951l; // TODO: Fix this to be constant in sys
+        final int sys_hash_info_nan = 0; // TODO: Fix this to be constant in sys
+        final int sys_hash_info_inf = 314159; // TODO: Fix this to be constant in sys
+        final int sys_hash_info_imag = 1000003; // TODO: Fix this to be constant in sys
+        final String sys_hash_info_algorithm = "siphash24"; // TODO: Fix this to be constant in sys
+        final int sys_hash_info_hash_bits = 64; // TODO: Fix this to be constant in sys
+        final int sys_hash_info_seed_bits = 128; // TODO: Fix this to be constant in sys
+
+        int hash_value = real.hashCode() + sys_hash_info_imag * imag.hashCode();
+        int M = (int) Math.pow(2, sys_hash_info_width - 1);
+        hash_value = (hash_value & (M - 1)) - (hash_value & M);
+        if (hash_value == -1) {
+            hash_value = -2;
+        }
+        return hash_value;
     }
 
     public Complex(org.python.types.Float real_val, org.python.types.Float imag_val) {

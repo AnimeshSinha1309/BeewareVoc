@@ -738,5 +738,77 @@ public class Float extends org.python.types.Object {
     }
 
 
+    static class MantissaExponent {
+        public double mantissa;
+        public int exponent;
 
+        public MantissaExponent(double mantissa, int exponent) {
+            this.mantissa = mantissa;
+            this.exponent = exponent;
+        }
+    }
+
+    // code stolen from Jython
+    // permalink: https://github.com/jythontools/jython/blob/bc8f61ac8256f2e9a1046f84d2b66a9deed037b5/src/org/python/modules/math.java#L348
+    private static MantissaExponent frexp(double x) {
+        int exponent;
+        double mantissa;
+
+        switch (exponent = Math.getExponent(x)) {
+
+            default:
+                // x = m * 2**exponent and 1 <=abs(m) <2
+                exponent = exponent + 1;
+                // x = m * 2**exponent and 0.5 <=abs(m) <1
+                mantissa = Math.scalb(x, -exponent);
+                break;
+
+            case 1024:  // nan or inf
+                mantissa = x;
+                exponent = 0;
+                break;
+
+            case -1023:
+                if (x == 0.) { // , 0.0 or -0.0
+                    mantissa = x;
+                    exponent = 0;
+                } else { // denormalised value
+                    // x = m * 2**exponent but 0 < abs(m) < 1
+                    exponent = Math.getExponent(x * 0x1p52) - 51;
+                    mantissa = Math.scalb(x, -exponent);
+                }
+                break;
+        }
+        return new MantissaExponent(mantissa, exponent);
+    }
+
+    @org.python.Method(
+        __doc__ = ""
+    )
+    public org.python.types.Tuple as_integer_ratio() {
+        MantissaExponent me = frexp(this.value);
+
+        for (int i=0; i<300 && me.mantissa != Math.floor(me.mantissa) ; i++) {
+            me.mantissa *= 2.0;
+            me.exponent--;
+        }
+        // This is dubious, we should replicate the behaviour of PyLong_fromDouble which appears
+        // to perform non-trivial reasoning about rounding.
+        // TODO: implement org.python.types.int.fromDouble, replicate CPython rounding behaviour
+        long numerator = (long)me.mantissa;
+        long denominator = 1;
+        int pyexponent = me.exponent < 0 ? -me.exponent : me.exponent;
+        // TODO: perform left shifts using PyObject
+        // to ensure that correct exceptions are
+        // thrown for NaN/Inf and other nasties.
+        if (me.exponent> 0) {
+            numerator = numerator << pyexponent;
+        } else {
+            denominator = denominator << pyexponent;
+        }
+        java.util.ArrayList<org.python.Object> list = new java.util.ArrayList<org.python.Object>();
+        list.add(new org.python.types.Int(numerator));
+        list.add(new org.python.types.Int(denominator));
+        return new org.python.types.Tuple(list);
+    }
 }

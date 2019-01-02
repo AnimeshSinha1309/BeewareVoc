@@ -45,7 +45,7 @@ public class Int extends org.python.types.Object {
         }
     }
 
-    private Int(long value) {
+    public Int(long value) {
         this.value = value;
     }
 
