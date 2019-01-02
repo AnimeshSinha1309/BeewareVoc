@@ -795,20 +795,18 @@ public class Float extends org.python.types.Object {
         // This is dubious, we should replicate the behaviour of PyLong_fromDouble which appears
         // to perform non-trivial reasoning about rounding.
         // TODO: implement org.python.types.int.fromDouble, replicate CPython rounding behaviour
-        long numerator = (long)me.mantissa;
-        long denominator = 1;
-        int pyexponent = me.exponent < 0 ? -me.exponent : me.exponent;
-        // TODO: perform left shifts using PyObject
-        // to ensure that correct exceptions are
-        // thrown for NaN/Inf and other nasties.
-        if (me.exponent> 0) {
-            numerator = numerator << pyexponent;
+        org.python.types.Int numerator = new org.python.types.Int((long) me.mantissa);
+        org.python.types.Int denominator = new org.python.types.Int((long) 1);
+        org.python.types.Int pyexponent = me.exponent < 0 ?
+            new org.python.types.Int(-me.exponent) : new org.python.types.Int(me.exponent);
+        if (me.exponent > 0) {
+            numerator = (org.python.types.Int) numerator.__lshift__(pyexponent);
         } else {
-            denominator = denominator << pyexponent;
+            denominator = (org.python.types.Int) denominator.__lshift__(pyexponent);
         }
         java.util.ArrayList<org.python.Object> list = new java.util.ArrayList<org.python.Object>();
-        list.add(new org.python.types.Int(numerator));
-        list.add(new org.python.types.Int(denominator));
+        list.add(numerator);
+        list.add(denominator);
         return new org.python.types.Tuple(list);
     }
 }
