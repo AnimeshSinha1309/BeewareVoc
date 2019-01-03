@@ -11,7 +11,45 @@ public class Float extends org.python.types.Object {
     }
 
     public int hashCode() {
-        return new java.lang.Double(this.value).hashCode();
+        final long _PyHashINF = 314159L, _PyHashNAN = 0L, _PyHashMULTIPLIER = 1000003L;
+        final long _PyHashBITS = 61L, _PyHashMODULUS = (1L << _PyHashBITS) - 1L;
+
+        if (Double.isInfinite(this.value))
+            return (int) (this.value > 0 ? _PyHashINF : -_PyHashINF);
+        else if (Double.isNaN(this.value))
+            return (int) _PyHashNAN;
+
+        MantissaExponent temp = frexp(this.value);
+        double m = temp.mantissa;
+        int e = temp.exponent;
+        int sign = 1;
+        if (m < 0) {
+            sign = -1;
+            m = -m;
+        }
+
+        /* process 28 bits at a time;  this should work well both for binary
+           and hexadecimal floating point. */
+        long x = 0, y;
+        while (m > 0) {
+            x = ((x << 28) & _PyHashMODULUS) | x >> (_PyHashBITS - 28);
+            m *= 268435456.0;  /* 2**28 */
+            e -= 28;
+            y = (long) m;  /* pull out integer part */
+            m -= y;
+            x += y;
+            if (x >= _PyHashMODULUS)
+                x -= _PyHashMODULUS;
+        }
+
+        /* adjust for the exponent;  first reduce it modulo _PyHASH_BITS */
+        e = (int) (e >= 0 ? e % _PyHashBITS : _PyHashBITS-1-((-1-e) % _PyHashBITS));
+        x = (long) (((x << e) & _PyHashMODULUS) | x >> (_PyHashBITS - e));
+
+        x = x * sign;
+        if (x == ((long) -1))
+            x = ((long) -2);
+        return (int) x;
     }
 
     public Float(float value) {
@@ -737,37 +775,64 @@ public class Float extends org.python.types.Object {
         throw new org.python.exceptions.TypeError("'float' object does not support item deletion");
     }
 
-
-    static class MantissaExponent {
-        public double mantissa;
-        public int exponent;
-
-        public MantissaExponent(double mantissa, int exponent) {
-            this.mantissa = mantissa;
-            this.exponent = exponent;
+    @org.python.Method(
+        __doc__ = ""
+    )
+    public org.python.types.Tuple as_integer_ratio() {
+        // Get the Mantissa and Exponent
+        MantissaExponent me = frexp(this.value);
+        for (int i=0; i < 300 && me.mantissa != Math.floor(me.mantissa); i++) {
+            me.mantissa *= 2.0;
+            me.exponent--;
         }
+        // This is dubious, we should replicate the behaviour of PyLong_fromDouble which appears
+        // to perform non-trivial reasoning about rounding.
+        // TODO: implement org.python.types.int.fromDouble, replicate CPython rounding behaviour
+        if (Double.isInfinite(me.mantissa)) {
+            throw new org.python.exceptions.OverflowError("cannot convert float infinity to integer");
+        } else if (Double.isNaN(me.mantissa)) {
+            throw new org.python.exceptions.ValueError("cannot convert NaN to integer");
+        }
+        // Get the Numerator and Denominator
+        org.python.types.Int numerator = new org.python.types.Int((long) me.mantissa);
+        org.python.types.Int denominator = new org.python.types.Int((long) 1);
+        org.python.types.Int pyexponent = me.exponent < 0
+            ? new org.python.types.Int(-me.exponent)
+            : new org.python.types.Int(me.exponent);
+        if (me.exponent > 0) {
+            numerator = (org.python.types.Int) numerator.__lshift__(pyexponent);
+        } else {
+            denominator = (org.python.types.Int) denominator.__lshift__(pyexponent);
+        }
+        // Getting the answer as an arraylist to return
+        java.util.ArrayList<org.python.Object> list = new java.util.ArrayList<org.python.Object>();
+        list.add(numerator);
+        list.add(denominator);
+        return new org.python.types.Tuple(list);
     }
 
-    // code stolen from Jython
-    // permalink: https://github.com/jythontools/jython/blob/bc8f61ac8256f2e9a1046f84d2b66a9deed037b5/src/org/python/modules/math.java#L348
+    /**
+     * Private Helper Function
+     * Breaks down a floating-point value into it's component mantissa and exponent.
+     *
+     * @param x - double, the value of the number that needs to be broken down.
+     * @return MantissaExponent - pair containing the mantissa and exponent.
+     *
+     * @notes
+     *  Code Stolen from Jython
+     *  Permalink: https://github.com/jythontools/jython/blob/bc8f61ac8256f2e9a1046f84d2b66a9deed037b5/src/org/python/modules/math.java#L348
+     */
     private static MantissaExponent frexp(double x) {
-        int exponent;
-        double mantissa;
-
+        int exponent; double mantissa;
         switch (exponent = Math.getExponent(x)) {
-
             default:
-                // x = m * 2**exponent and 1 <=abs(m) <2
-                exponent = exponent + 1;
-                // x = m * 2**exponent and 0.5 <=abs(m) <1
-                mantissa = Math.scalb(x, -exponent);
+                exponent = exponent + 1; // x = m * 2**exponent and 1 <=abs(m) <2
+                mantissa = Math.scalb(x, -exponent); // x = m * 2**exponent and 0.5 <=abs(m) <1
                 break;
-
             case 1024:  // nan or inf
                 mantissa = x;
                 exponent = 0;
                 break;
-
             case -1023:
                 if (x == 0.) { // , 0.0 or -0.0
                     mantissa = x;
@@ -781,32 +846,13 @@ public class Float extends org.python.types.Object {
         }
         return new MantissaExponent(mantissa, exponent);
     }
+    static class MantissaExponent {
+        public double mantissa;
+        public int exponent;
 
-    @org.python.Method(
-        __doc__ = ""
-    )
-    public org.python.types.Tuple as_integer_ratio() {
-        MantissaExponent me = frexp(this.value);
-
-        for (int i=0; i<300 && me.mantissa != Math.floor(me.mantissa) ; i++) {
-            me.mantissa *= 2.0;
-            me.exponent--;
+        public MantissaExponent(double mantissa, int exponent) {
+            this.mantissa = mantissa;
+            this.exponent = exponent;
         }
-        // This is dubious, we should replicate the behaviour of PyLong_fromDouble which appears
-        // to perform non-trivial reasoning about rounding.
-        // TODO: implement org.python.types.int.fromDouble, replicate CPython rounding behaviour
-        org.python.types.Int numerator = new org.python.types.Int((long) me.mantissa);
-        org.python.types.Int denominator = new org.python.types.Int((long) 1);
-        org.python.types.Int pyexponent = me.exponent < 0 ?
-            new org.python.types.Int(-me.exponent) : new org.python.types.Int(me.exponent);
-        if (me.exponent > 0) {
-            numerator = (org.python.types.Int) numerator.__lshift__(pyexponent);
-        } else {
-            denominator = (org.python.types.Int) denominator.__lshift__(pyexponent);
-        }
-        java.util.ArrayList<org.python.Object> list = new java.util.ArrayList<org.python.Object>();
-        list.add(numerator);
-        list.add(denominator);
-        return new org.python.types.Tuple(list);
     }
 }
