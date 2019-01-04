@@ -11,13 +11,17 @@ public class Float extends org.python.types.Object {
     }
 
     public int hashCode() {
+        return new java.lang.Double(this.value).hashCode();
+    }
+
+    public org.python.types.Int __hash__() {
         final long _PyHashINF = 314159L, _PyHashNAN = 0L, _PyHashMULTIPLIER = 1000003L;
         final long _PyHashBITS = 61L, _PyHashMODULUS = (1L << _PyHashBITS) - 1L;
 
         if (Double.isInfinite(this.value))
-            return (int) (this.value > 0 ? _PyHashINF : -_PyHashINF);
+            return org.python.types.Int.getInt(this.value > 0 ? _PyHashINF : -_PyHashINF);
         else if (Double.isNaN(this.value))
-            return (int) _PyHashNAN;
+            return org.python.types.Int.getInt(_PyHashNAN);
 
         MantissaExponent temp = frexp(this.value);
         double m = temp.mantissa;
@@ -45,11 +49,9 @@ public class Float extends org.python.types.Object {
         /* adjust for the exponent;  first reduce it modulo _PyHASH_BITS */
         e = (int) (e >= 0 ? e % _PyHashBITS : _PyHashBITS-1-((-1-e) % _PyHashBITS));
         x = (long) (((x << e) & _PyHashMODULUS) | x >> (_PyHashBITS - e));
-
         x = x * sign;
-        if (x == ((long) -1))
-            x = ((long) -2);
-        return (int) x;
+        if (x == ((long) -1)) x = ((long) -2);
+        return org.python.types.Int.getInt(x);
     }
 
     public Float(float value) {

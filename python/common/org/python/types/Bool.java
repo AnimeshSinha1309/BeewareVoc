@@ -24,7 +24,12 @@ public class Bool extends org.python.types.Object {
     }
 
     public int hashCode() {
-        if (this.value == true) return 1; else return 0;
+        return new java.lang.Boolean(this.value).hashCode();
+    }
+
+    public org.python.types.Int __hash__() {
+        if (this.value == true) return org.python.types.Int.getInt(1);
+        else return org.python.types.Int.getInt(0);
     }
 
     private Bool(boolean bool) {

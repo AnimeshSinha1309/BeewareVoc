@@ -4,7 +4,7 @@ from .. utils import TranspileTestCase, UnaryOperationTestCase, BinaryOperationT
 
 
 class SetTests(TranspileTestCase):
-    @expectedFailure
+
     def test_complex_element(self):
         self.assertCodeExecution("""
             x = {1j, 2j}
@@ -13,6 +13,7 @@ class SetTests(TranspileTestCase):
                 print(i)
             """)
 
+    @expectedFailure
     def test_equal_value_different_datatypes(self):
         self.assertCodeExecution("""
             x = {1, 1.0, True}

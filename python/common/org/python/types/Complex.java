@@ -19,15 +19,22 @@ public class Complex extends org.python.types.Object {
     }
 
     public int hashCode() {
+        java.util.ArrayList<org.python.types.Float> pair = new java.util.ArrayList<org.python.types.Float>();
+        pair.add(real);
+        pair.add(imag);
+        return pair.hashCode();
+    }
+
+    public org.python.types.Int __hash__() {
         final int _PyHashIMAG = 1000003; // TODO: Fix this to be constant in sys
         long hashreal, hashimag, combined;
-        hashreal = (long) this.real.hashCode();
-        if (hashreal == (long)-1) return -1;
-        hashimag = (long) this.imag.hashCode();
-        if (hashimag == (long)-1) return -1;
+        hashreal = this.real.__hash__().value;
+        if (hashreal == (long)-1) return org.python.types.Int.getInt(-1);
+        hashimag = this.imag.__hash__().value;
+        if (hashimag == (long)-1) return org.python.types.Int.getInt(-1);
         combined = hashreal + _PyHashIMAG * hashimag;
         if (combined == (long)-1) combined = (long)-2;
-        return (int)combined;
+        return org.python.types.Int.getInt(combined);
     }
 
     public Complex(org.python.types.Float real_val, org.python.types.Float imag_val) {

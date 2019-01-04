@@ -19,6 +19,10 @@ public class Int extends org.python.types.Object {
         return new java.lang.Long(this.value).hashCode();
     }
 
+    public org.python.types.Int __hash__() {
+        return org.python.types.Int.getInt(this.value);
+    }
+
     public static org.python.types.Int getInt(byte value) {
         return getInt((long) value);
     }
