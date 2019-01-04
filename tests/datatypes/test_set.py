@@ -5,7 +5,7 @@ from .. utils import TranspileTestCase, UnaryOperationTestCase, BinaryOperationT
 
 class SetTests(TranspileTestCase):
 
-  def test_complex_element(self):
+    def test_complex_element(self):
         self.assertCodeExecution("""
             x = {1j, 2j}
 
