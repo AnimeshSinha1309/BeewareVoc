@@ -29,11 +29,17 @@ public class Complex extends org.python.types.Object {
         final int _PyHashIMAG = 1000003; // TODO: Fix this to be constant in sys
         long hashreal, hashimag, combined;
         hashreal = this.real.__hash__().value;
-        if (hashreal == (long)-1) return org.python.types.Int.getInt(-1);
+        if (hashreal == (long)-1) {
+            return org.python.types.Int.getInt(-1);
+        }
         hashimag = this.imag.__hash__().value;
-        if (hashimag == (long)-1) return org.python.types.Int.getInt(-1);
+        if (hashimag == (long)-1) {
+            return org.python.types.Int.getInt(-1);
+        }
         combined = hashreal + _PyHashIMAG * hashimag;
-        if (combined == (long)-1) combined = (long)-2;
+        if (combined == (long)-1) {
+            combined = (long)-2;
+        }
         return org.python.types.Int.getInt(combined);
     }
 

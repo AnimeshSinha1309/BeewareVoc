@@ -14,6 +14,11 @@ public class Float extends org.python.types.Object {
         return new java.lang.Double(this.value).hashCode();
     }
 
+    /**
+     * @notes
+     *  Code derived from CPython
+     *  Permalink: https://github.com/python/cpython/blob/6aedfa6b9ac324587f64133c23757a66a8f355bb/Python/pyhash.c#L86
+     */
     public org.python.types.Int __hash__() {
         final long _PyHashINF = 314159L, _PyHashNAN = 0L, _PyHashMULTIPLIER = 1000003L;
         final long _PyHashBITS = 61L, _PyHashMODULUS = (1L << _PyHashBITS) - 1L;
@@ -776,7 +781,7 @@ public class Float extends org.python.types.Object {
     public void __delitem__(org.python.Object other) {
         throw new org.python.exceptions.TypeError("'float' object does not support item deletion");
     }
-
+    
     @org.python.Method(
         __doc__ = ""
     )
@@ -796,11 +801,11 @@ public class Float extends org.python.types.Object {
             throw new org.python.exceptions.ValueError("cannot convert NaN to integer");
         }
         // Get the Numerator and Denominator
-        org.python.types.Int numerator = new org.python.types.Int((long) me.mantissa);
-        org.python.types.Int denominator = new org.python.types.Int((long) 1);
+        org.python.types.Int numerator = org.python.types.Int.getInt((long) me.mantissa);
+        org.python.types.Int denominator = org.python.types.Int.getInt((long) 1);
         org.python.types.Int pyexponent = me.exponent < 0
-            ? new org.python.types.Int(-me.exponent)
-            : new org.python.types.Int(me.exponent);
+            ? org.python.types.Int.getInt(-me.exponent)
+            : org.python.types.Int.getInt(me.exponent);
         if (me.exponent > 0) {
             numerator = (org.python.types.Int) numerator.__lshift__(pyexponent);
         } else {
@@ -821,7 +826,7 @@ public class Float extends org.python.types.Object {
      * @return MantissaExponent - pair containing the mantissa and exponent.
      *
      * @notes
-     *  Code Stolen from Jython
+     *  Code derived from Jython
      *  Permalink: https://github.com/jythontools/jython/blob/bc8f61ac8256f2e9a1046f84d2b66a9deed037b5/src/org/python/modules/math.java#L348
      */
     private static MantissaExponent frexp(double x) {

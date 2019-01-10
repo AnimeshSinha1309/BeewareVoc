@@ -28,8 +28,11 @@ public class Bool extends org.python.types.Object {
     }
 
     public org.python.types.Int __hash__() {
-        if (this.value == true) return org.python.types.Int.getInt(1);
-        else return org.python.types.Int.getInt(0);
+        if (this.value == true) {
+            return org.python.types.Int.getInt(1);
+        } else {
+            return org.python.types.Int.getInt(0);
+        }
     }
 
     private Bool(boolean bool) {
