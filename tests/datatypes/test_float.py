@@ -140,6 +140,34 @@ class FloatTests(TranspileTestCase):
                 print(err)
         """)
 
+    def test_as_integer_ratio(self):
+        self.assertCodeExecution("""
+            a = 5.6
+            print(a.as_integer_ratio())
+            b = 6.0
+            print(b.as_integer_ratio())
+            c = 8.5
+            print(c.as_integer_ratio())
+            d = 3.141592653589793
+            print(d.as_integer_ratio())
+        """)
+
+    def test_hash(self):
+        self.assertCodeExecution("""
+            print(hash(0.123))
+            print(hash(0.001))
+            print(hash(0.500))
+            print(hash(0.280371892361728361293))
+            print(hash(0.983147249876198361289))
+            print(hash(0.467985309482895084570))
+            print(hash(-0.1))
+            print(hash(-0.221903812903877019381))
+            print(hash(-0.5))
+            print(hash(float('nan')))
+            print(hash(float('inf')))
+            print(hash(1.0))
+        """)
+
 
 class UnaryFloatOperationTests(UnaryOperationTestCase, TranspileTestCase):
     data_type = 'float'

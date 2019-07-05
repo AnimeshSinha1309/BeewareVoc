@@ -38,6 +38,12 @@ class BoolTests(TranspileTestCase):
                 print(err)
         """)
 
+    def test_hash(self):
+        self.assertCodeExecution("""
+            print(hash(True))
+            print(hash(False))
+        """)
+
 
 class UnaryBoolOperationTests(UnaryOperationTestCase, TranspileTestCase):
     data_type = 'bool'

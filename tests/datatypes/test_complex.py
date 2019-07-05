@@ -39,6 +39,15 @@ class ComplexTests(TranspileTestCase):
             print(y.__ne__(x))
             """)
 
+    def test_hash(self):
+        self.assertCodeExecution("""
+            print(hash(complex(2, 5)))
+            print(hash(complex(2, 0)))
+            print(hash(complex(162123, 653411)))
+            print(hash(complex(12908.19238, 1293.19238)))
+            print(hash(complex(0, 0)))
+        """)
+
 
 class UnaryComplexOperationTests(UnaryOperationTestCase, TranspileTestCase):
     data_type = 'complex'

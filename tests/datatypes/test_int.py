@@ -109,6 +109,14 @@ class IntTests(TranspileTestCase):
                 print(err)
             """)
 
+    def test_hash(self):
+        self.assertCodeExecution("""
+            print(hash(1))
+            print(hash(0))
+            print(hash(290381283702139))
+            print(hash(19283//123))
+        """)
+
 
 class UnaryIntOperationTests(UnaryOperationTestCase, TranspileTestCase):
     data_type = 'int'
